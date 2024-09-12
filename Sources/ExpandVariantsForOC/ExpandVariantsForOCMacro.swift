@@ -7,5 +7,6 @@
 ///     #stringify(x + y)
 ///
 /// produces a tuple `(x + y, "x + y")`.
-@freestanding(expression)
-public macro stringify<T>(_ value: T) -> (T, String) = #externalMacro(module: "ExpandVariantsForOCMacroMacros", type: "StringifyMacro")
+@attached(peer, names: arbitrary)
+macro ExpandVariantsForOC() = #externalMacro(module: "ExpandVariantsForOCPlugin", type: "ExpandVariantsForOCMacro")
+

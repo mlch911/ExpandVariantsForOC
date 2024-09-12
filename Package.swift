@@ -5,48 +5,50 @@ import PackageDescription
 import CompilerPluginSupport
 
 let package = Package(
-    name: "ExpandVariantsForOCMacro",
+    name: "ExpandVariantsForOC",
     platforms: [.macOS(.v10_15), .iOS(.v13), .tvOS(.v13), .watchOS(.v6), .macCatalyst(.v13)],
     products: [
-        // Products define the executables and libraries a package produces, making them visible to other packages.
         .library(
-            name: "ExpandVariantsForOCMacro",
-            targets: ["ExpandVariantsForOCMacro"]
-        ),
-        .executable(
-            name: "ExpandVariantsForOCMacroClient",
-            targets: ["ExpandVariantsForOCMacroClient"]
+            name: "ExpandVariantsForOC",
+            targets: ["ExpandVariantsForOC"]
         ),
     ],
     dependencies: [
-        // Depend on the Swift 5.9 release of SwiftSyntax
         .package(url: "https://github.com/apple/swift-syntax.git", from: "509.0.0"),
+        .package(url: "https://github.com/pointfreeco/swift-macro-testing.git", from: "0.2.2"),
     ],
     targets: [
-        // Targets are the basic building blocks of a package, defining a module or a test suite.
-        // Targets can depend on other targets in this package and products from dependencies.
-        // Macro implementation that performs the source transformation of a macro.
+        .target(name: "ExpandVariantsForOC", dependencies: ["ExpandVariantsForOCPlugin"]),
         .macro(
-            name: "ExpandVariantsForOCMacroMacros",
+            name: "ExpandVariantsForOCPlugin",
             dependencies: [
-                .product(name: "SwiftSyntaxMacros", package: "swift-syntax"),
-                .product(name: "SwiftCompilerPlugin", package: "swift-syntax")
+                .swiftSyntax,
+                .swiftSyntaxMacros,
+                .swiftCompilerPlugin,
+                .swiftSyntaxBuilder,
+                .swiftParserDiagnostics,
             ]
         ),
-
-        // Library that exposes a macro as part of its API, which is used in client programs.
-        .target(name: "ExpandVariantsForOCMacro", dependencies: ["ExpandVariantsForOCMacroMacros"]),
-
-        // A client of the library, which is able to use the macro in its own code.
-        .executableTarget(name: "ExpandVariantsForOCMacroClient", dependencies: ["ExpandVariantsForOCMacro"]),
-
-        // A test target used to develop the macro implementation.
         .testTarget(
-            name: "ExpandVariantsForOCMacroTests",
+            name: "ExpandVariantsForOCTests",
             dependencies: [
-                "ExpandVariantsForOCMacroMacros",
-                .product(name: "SwiftSyntaxMacrosTestSupport", package: "swift-syntax"),
+                "ExpandVariantsForOCPlugin",
+                .swiftSyntaxMacrosTestSupport,
+                .macroTesting
             ]
         ),
     ]
 )
+
+extension Target.Dependency {
+    // swift-syntax
+    static let swiftSyntax = Self.product(name: "SwiftSyntax", package: "swift-syntax")
+    static let swiftSyntaxMacros = Self.product(name: "SwiftSyntaxMacros", package: "swift-syntax")
+    static let swiftCompilerPlugin = Self.product(name: "SwiftCompilerPlugin", package: "swift-syntax")
+    static let swiftSyntaxBuilder = Self.product(name: "SwiftSyntaxBuilder", package: "swift-syntax")
+    static let swiftParserDiagnostics = Self.product(name: "SwiftParserDiagnostics", package: "swift-syntax")
+    static let swiftSyntaxMacrosTestSupport = Self.product(name: "SwiftSyntaxMacrosTestSupport", package: "swift-syntax")
+    // swift-macro-testing
+    static let macroTesting = Self.product(name: "MacroTesting", package: "swift-macro-testing")
+    
+}
