@@ -125,7 +125,7 @@ public struct ExpandVariantsForOCMacro: PeerMacro {
 		// 创建新的属性列表，排除当前宏，避免死循环
 		let attributes = AttributeListSyntax {
 			"@objc"
-			"@available(swift, obsoleted: 1.0)" // 不允许swift调用
+			"\n@available(swift, obsoleted: 1.0)" // 不允许swift调用
 			for attribute in originalFunctionDecl.attributes {
 				switch attribute {
 				case let .attribute(element):
@@ -141,8 +141,13 @@ public struct ExpandVariantsForOCMacro: PeerMacro {
 		// 构建最终的函数声明
 		return FunctionDeclSyntax(
 			attributes: attributes,
-			modifiers: originalFunctionDecl.modifiers,
-			funcKeyword: originalFunctionDecl.funcKeyword,
+			modifiers: originalFunctionDecl.modifiers.trimmed(matching: {
+				$0.isSpaceOrTab
+			}),
+			funcKeyword: originalFunctionDecl.funcKeyword.with(
+				\.leadingTrivia,
+				 Trivia(pieces: originalFunctionDecl.funcKeyword.leadingTrivia.pieces.filter({ !$0.isSpaceOrTab }))
+			),
 			name: originalFunctionDecl.name,
 			genericParameterClause: originalFunctionDecl.genericParameterClause,
 			signature: FunctionSignatureSyntax(
