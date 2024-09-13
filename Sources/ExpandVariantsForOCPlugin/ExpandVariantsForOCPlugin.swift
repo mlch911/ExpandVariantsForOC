@@ -6,13 +6,13 @@
 //
 
 #if canImport(SwiftCompilerPlugin)
-import SwiftSyntaxMacros
 import SwiftCompilerPlugin
+import SwiftSyntaxMacros
 
 @main
 struct ExpandVariantsForOCPlugin: CompilerPlugin {
-    let providingMacros: [Macro.Type] = [
-        ExpandVariantsForOCMacro.self
-    ]
+	let providingMacros: [Macro.Type] = [
+		ExpandVariantsForOCMacro.self
+	]
 }
 #endif

@@ -16,9 +16,9 @@ let package = Package(
     dependencies: [
         .package(url: "https://github.com/apple/swift-syntax.git", from: "509.0.0"),
         .package(url: "https://github.com/pointfreeco/swift-macro-testing.git", from: "0.2.2"),
+		.package(url: "https://github.com/nicklockwood/SwiftFormat", from: "0.54.0"),
     ],
     targets: [
-        .target(name: "ExpandVariantsForOC", dependencies: ["ExpandVariantsForOCPlugin"]),
         .macro(
             name: "ExpandVariantsForOCPlugin",
             dependencies: [
@@ -29,6 +29,8 @@ let package = Package(
                 .swiftParserDiagnostics,
             ]
         ),
+        .target(name: "ExpandVariantsForOC", dependencies: ["ExpandVariantsForOCPlugin"]),
+        .executableTarget(name: "ExpandVariantsForOCClient", dependencies: ["ExpandVariantsForOC"]),
         .testTarget(
             name: "ExpandVariantsForOCTests",
             dependencies: [
@@ -50,5 +52,4 @@ extension Target.Dependency {
     static let swiftSyntaxMacrosTestSupport = Self.product(name: "SwiftSyntaxMacrosTestSupport", package: "swift-syntax")
     // swift-macro-testing
     static let macroTesting = Self.product(name: "MacroTesting", package: "swift-macro-testing")
-    
 }
