@@ -9,7 +9,8 @@ import XCTest
 
 final class ExpandVariantsForOCMacroTests: XCTestCase {
 	override func invokeTest() {
-		withMacroTesting( 
+		withMacroTesting(
+			// swiftformat:disable:next all
 //            record: true,
 			macros: ["ExpandVariantsForOC": ExpandVariantsForOCMacro.self]
 		) {
