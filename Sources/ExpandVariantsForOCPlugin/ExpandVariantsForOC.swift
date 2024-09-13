@@ -129,7 +129,7 @@ public struct ExpandVariantsForOCMacro: PeerMacro {
 			for attribute in originalFunctionDecl.attributes {
 				switch attribute {
 				case let .attribute(element):
-					if element.attributeName.description != "ExpandVariantsForOC" {
+					if !["ExpandVariantsForOC", "objc"].contains(element.attributeName.description) {
 						attribute
 					}
 				case .ifConfigDecl:
