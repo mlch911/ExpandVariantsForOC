@@ -12,25 +12,22 @@ public struct ExpandVariantsForOCMacro: PeerMacro {
 	) throws -> [DeclSyntax] {
 		// 确保是一个函数
 		guard let funcDecl = declaration.as(FunctionDeclSyntax.self) else {
-			context.diagnose(Diagnostic.onlyAppliedToFunctions.diagnose(at: node))
-			return []
+			throw Diagnostic.onlyAppliedToFunctions
 		}
 
 		// 生成可选参数的所有排列组合
-		let combinations = generateCombinations(of: Array(funcDecl.signature.parameterClause.parameters))
+		let combinations = generateCombinations(of: funcDecl.signature.parameterClause.parameters)
 
 		// 为每个组合生成对应的重载函数
-		var generatedFunctions: [DeclSyntax] = []
-		for combination in combinations {
-			let newFunction = generateFunctionVariant(from: funcDecl, with: combination)
-			generatedFunctions.append(DeclSyntax(newFunction))
+		return combinations.map { combination in
+			DeclSyntax(generateFunctionVariant(from: funcDecl, with: combination))
 		}
-
-		return generatedFunctions
 	}
 
 	/// 生成参数组合的排列
-	private static func generateCombinations(of parameters: [FunctionParameterSyntax]) -> [[FunctionParameterSyntax]] {
+	private static func generateCombinations(of parameterList: FunctionParameterListSyntax) -> [[FunctionParameterSyntax]] {
+		let parameters = Array(parameterList)
+
 		// 分离带默认值的参数和不带默认值的参数
 		var defaultParams = [FunctionParameterSyntax]()
 		var nonDefaultParams = [FunctionParameterSyntax]()
@@ -99,8 +96,7 @@ public struct ExpandVariantsForOCMacro: PeerMacro {
 				for param in originalFunctionDecl.signature.parameterClause.parameters {
 					let matchingParam = parameters.first { $0.realName.description == param.realName.description }
 					let expression = matchingParam.map { ExprSyntax(DeclReferenceExprSyntax(baseName: $0.realName)) } // 如果参数在当前函数签名中，则使用参数名
-						?? param.defaultValue?.value // 如果参数有默认值，使用默认值
-						?? ExprSyntax(NilLiteralExprSyntax()) // 如果参数既不在当前函数签名中，也没有默认值，则传递 nil
+						?? param.defaultValue!.value // 如果参数有默认值，使用默认值
 
 					LabeledExprSyntax(
 						label: param.callName,
@@ -136,7 +132,7 @@ public struct ExpandVariantsForOCMacro: PeerMacro {
 					if element.attributeName.description != "ExpandVariantsForOC" {
 						attribute
 					}
-				case let .ifConfigDecl(element):
+				case .ifConfigDecl:
 					attribute
 				}
 			}
@@ -160,8 +156,10 @@ public struct ExpandVariantsForOCMacro: PeerMacro {
 }
 
 public extension ExpandVariantsForOCMacro {
-	enum Diagnostic {
+	enum Diagnostic: Error, CustomStringConvertible {
 		case onlyAppliedToFunctions
+
+		public var description: String { message }
 	}
 }
 
